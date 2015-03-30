@@ -7,17 +7,14 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
 /**
  * Created by priyadarshini on 3/29/15.
  */
 public class Nodes {
-    public static final int TOTAL_SERVERS = 7;
+    public static final int TOTAL_SERVERS = 3;
     protected int id;
-    protected int leftChild, rightChild;
-    protected int parent;
-    private Map<Integer, Socket> connectedSockets;
+    protected Map<Integer, Socket> connectedSockets;
     private ServerTree rootNode;
     HashMap<Integer, ServerTree> serverMap;
 
@@ -30,21 +27,7 @@ public class Nodes {
     void create(String[] hostDetails) throws IOException {
         id=Integer.parseInt(hostDetails[1]);
         if (hostDetails[0].equals("server")) {
-            ServerSocket serverSocket = null;
-            int clientId = 1;
-            try {
-                serverSocket = new ServerSocket(Integer.valueOf(hostDetails[2]));
-                while (true) {
-                    System.out.println("Waiting to accept connections & clientID is " + clientId);
-                    Socket connectedSocket = serverSocket.accept();
-                    AcceptClient obClient = new AcceptClient(clientId, connectedSocket);
-                    connectedSockets.put(clientId, connectedSocket);
-                    System.out.println("Connected to client id " + clientId);
-                    clientId++;
-                }
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-            }
+            AcceptClient acceptClient = new AcceptClient(hostDetails, this);
         } else if(hostDetails[0].equals("client")) {
             List<String> serverDetails = Files.readAllLines(Paths.get("resources/serverAddress.txt"), StandardCharsets.UTF_8);
             for (String serverDetail : serverDetails) {
@@ -71,6 +54,10 @@ public class Nodes {
 
     public Map<Integer, Socket> getConnectedSockets() {
         return connectedSockets;
+    }
+
+    public void putInConnectedSockets(int clientId, Socket socket){
+        connectedSockets.put(clientId, socket);
     }
 
 

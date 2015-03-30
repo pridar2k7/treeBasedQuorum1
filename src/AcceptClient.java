@@ -1,36 +1,36 @@
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.concurrent.BlockingQueue;
 
 /**
  * Created by priyadarshini on 3/29/15.
  */
-public class AcceptClient extends Thread {
-    Socket clientSocket;
-    BufferedReader reader;
-    BlockingQueue messageQueue;
+public class AcceptClient extends Thread{
+    private final String[] hostDetails;
+    private final Nodes nodes;
 
-    AcceptClient(int clientId, Socket CSoc) throws Exception {
-        System.out.println("Connected to client with ID " + clientId);
-        try {
-            clientSocket = CSoc;
-
-            reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            start();
-        } catch (Exception e) {
-            System.out.println("Something went wrong in AcceptClient: " + e.getMessage());
-        }
+    public AcceptClient(String[] hostDetails, Nodes nodes) {
+        this.hostDetails = hostDetails;
+        this.nodes = nodes;
+        start();
     }
 
-    public void run() {
+    @Override
+    public void run(){
+        ServerSocket serverSocket = null;
+        int clientId = 1;
         try {
-            String msgFromClient;
-            while ((msgFromClient = reader.readLine()) != null) {
-                messageQueue.put(msgFromClient.trim());
+            serverSocket = new ServerSocket(Integer.valueOf(hostDetails[2]));
+            while (true) {
+                System.out.println("Waiting to accept connections & clientID is " + clientId);
+                Socket connectedSocket = serverSocket.accept();
+                MessageReader obClient = new MessageReader(clientId, connectedSocket);
+                nodes.putInConnectedSockets(clientId, connectedSocket);
+                System.out.println("Connected to client id " + clientId);
+                clientId++;
             }
-        } catch (Exception ex) {
-            System.out.println("Something went wrong in run of AcceptClient: " + ex.getMessage());
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
         }
     }
+
 }
